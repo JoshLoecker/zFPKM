@@ -18,13 +18,9 @@ __all__ = ["binned_distribution", "density", "dnorm", "nrd0"]
 LN2 = 0.693147180559945309417232121458
 INV_SQRT_2PI = 0.398942280401432677939946059934
 LOG_SQRT_2PI = 0.918938533204672741780329736406
-DBL_MIN_EXP = -1074  # include subnormals (as in your code)
+DBL_MIN_EXP = -1074
 DBL_MANT_DIG = 53
-
-# sqrt(DBL_MAX) once, not per call
 MAX_SQRT = math.sqrt(sys.float_info.max)
-
-# underflow boundary once, not per call
 UNDERFLOW_BOUNDARY = math.sqrt(-2.0 * LN2 * (DBL_MIN_EXP + 1 - DBL_MANT_DIG))
 
 
