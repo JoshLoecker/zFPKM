@@ -430,7 +430,7 @@ def density(
         else:
             raise ValueError("NA values found in 'x'. Set 'remove_na=True' to ignore them.")
 
-    nx = n
+    nx = x.size
     x_finite = np.isfinite(x)
     if np.any(~x_finite):
         x = x[x_finite]
@@ -489,8 +489,6 @@ def density(
 
     kords: npt.NDArray[np.float64] = np.linspace(start=0, stop=((2 * n - 1) / (n - 1) * (up - lo)), num=2 * n, dtype=np.float64)
     kords[n + 1 : 2 * n] = -kords[n:1:-1]  # mirror/negate tail: R's kords[n:2] will index from the reverse if `n`>2
-
-    # Initial diverge here (inside dnorm calculation)
     kords: npt.NDArray[np.float64] = dnorm_vec(kords, sd=bw_calc)
 
     fft_y: npt.NDArray[np.complex128] = np.fft.fft(y)
