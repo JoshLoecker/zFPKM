@@ -6,7 +6,7 @@ on:
 
 jobs:
   test:
-    name: py${{ matrix.python-version }} | pandas=${{ matrix.pandas }} | numpy=${{ matrix.numpy }}
+    name: Tests for Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
 
     strategy:
