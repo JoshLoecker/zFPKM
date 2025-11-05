@@ -450,7 +450,6 @@ def density(
             total_mass = float(weights.sum() / wsum)
         else:
             total_mass = float(1)
-
     n_user: int = n
     n = max(n, 512)
     if n > 512:  # round n up to the next power of 2 (i.e., 2^8=512, 2^9=1024)
