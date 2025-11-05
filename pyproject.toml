@@ -2,11 +2,11 @@
 name = "zfpkm"
 version = "0.1.0"
 description = "Find active genes in bulk RNA-seq data"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "loguru>=0.7.3",
-    "numpy>=1.25.0",
-    "pandas>=2.1.0",
+    "numpy>=1.20.3",  # 1.20.0 required for numpy.typing
+    "pandas>=2.0.0",
 ]
 
 [dependency-groups]
