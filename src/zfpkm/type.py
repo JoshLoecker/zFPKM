@@ -38,7 +38,7 @@ class _ToDict:
 
 
 def dataclass(*args, **kwargs):
-    if sys.version_info <= (3, 9):
+    if sys.version_info.minor <= 9 and "slots" in kwargs:
         kwargs.pop("slots")
     return _dataclass(*args, **kwargs)
 
