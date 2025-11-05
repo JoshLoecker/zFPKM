@@ -94,26 +94,7 @@ def binned_distribution(x: npt.ArrayLike, weights: npt.ArrayLike, lo: SupportsFl
     return y
 
 
-def dnorm(x: SupportsFloat, mean: SupportsFloat = 0.0, sd: SupportsFloat = 1.0, log: bool = False, fast_dnorm: bool = False) -> np.float64:
-    """Density function for the normal distribution.
-
-    This is a reproduction of R's `density` function.
-    Neither SciPy nor NumPy are capable of producing KDE values that align with R, and as a result,
-        a manual translation of R's KDE implementation was necessary.
-
-    References:
-        1) Documentation: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/Normal
-        2) Source code (2025-OCT-30): https://github.com/wch/r-source/blob/3f7e2528990351bc4b0d1f1b237714668ab4c0c5/src/nmath/dnorm.c
-
-    Args:
-        x: Value at which to evaluate the density.
-        mean: Mean of the normal distribution.
-        sd: Standard deviation of the normal distribution.
-        log: If True, return the log density.
-        fast_dnorm: If True, use a faster but less accurate calculation for small `x`.
-
-
-    """
+def _dnorm_scalar(x: SupportsFloat, mean: SupportsFloat = 0.0, sd: SupportsFloat = 1.0, log: bool = False, fast_dnorm: bool = False) -> np.float64:
     # Constants
     m_ln2: float = 0.693147180559945309417232121458  # ln(2)
     m_1_sqrt_2pi: float = 0.398942280401432677939946059934  # 1/sqrt(2pi)
@@ -175,77 +156,7 @@ def dnorm(x: SupportsFloat, mean: SupportsFloat = 0.0, sd: SupportsFloat = 1.0, 
     return np.float64((m_1_sqrt_2pi / f_sd) * (np.exp(-0.5 * a1 * a1) * np.exp((-a1 * a2) - (0.5 * a2 * a2))))
 
 
-def dnorm_new(
-    x: SupportsFloat,
-    mean: SupportsFloat = 0.0,
-    sd: SupportsFloat = 1.0,
-    log: bool = False,
-    fast_dnorm: bool = False,
-) -> np.float64:
-    """Scalar Normal density, behavior aligned with R's dnorm.
-
-    Optimized for speed by avoiding NumPy on scalar paths.
-    """
-    # Bind frequently used math funcs as locals (faster than global lookups)
-    isnan = math.isnan
-    isfinite = math.isfinite
-    exp = math.exp
-    logf = math.log
-    ldexp = math.ldexp
-    fabs = math.fabs
-
-    xf = float(x)
-    mf = float(mean)
-    sdf = float(sd)
-
-    # NaN handling & parameter checks
-    if isnan(xf) or isnan(mf) or isnan(sdf):
-        return np.float64(math.nan)
-    if sdf < 0.0:
-        return np.float64(math.nan)
-    if not isfinite(sdf):
-        return np.float64(-math.inf) if log else np.float64(0.0)
-    if (not isfinite(xf)) and (xf == mf):
-        # matches R's NA behavior when both are +/-Inf and equal
-        return np.float64(math.nan)
-    if sdf == 0.0:
-        return np.float64(math.inf) if (xf == mf) else (np.float64(-math.inf) if log else np.float64(0.0))
-
-    inv_sd = 1.0 / sdf
-    z = (xf - mf) * inv_sd
-
-    if not isfinite(z):
-        # If z blew up but x==mean (0/0 case), R gives NaN; otherwise density is 0 (or log  -Inf)
-        if xf == mf:
-            return np.float64(math.nan)
-        return np.float64(-math.inf) if log else np.float64(0.0)
-
-    a = abs(z)
-
-    # Protect a*a from overflow in the pathological case
-    if a >= 2.0 * MAX_SQRT:
-        return np.float64(-math.inf) if log else np.float64(0.0)
-
-    # Log path: one formula, no exp calls
-    if log:
-        return np.float64(-(LOG_SQRT_2PI + 0.5 * a * a) - logf(sdf))
-
-    # Fast (and still accurate for |z| < 5) path
-    if fast_dnorm or a < 5.0:
-        return np.float64(INV_SQRT_2PI * exp(-0.5 * a * a) * inv_sd)
-
-    # Very far tail: check underflow boundary
-    if a > UNDERFLOW_BOUNDARY:
-        return np.float64(0.0)
-
-    # Tail split for full accuracy (|a2| <= 2^-16)
-    a1 = ldexp(round(ldexp(a, 16)), -16)
-    a2 = a - a1
-
-    return np.float64((INV_SQRT_2PI * inv_sd) * (exp(-0.5 * a1 * a1) * exp((-a1 * a2) - (0.5 * a2 * a2))))
-
-
-def dnorm_vec(x: npt.ArrayLike, mean: SupportsFloat = 0.0, sd: SupportsFloat = 1.0, log: bool = False):
+def _dnorm_vector(x: npt.ArrayLike, mean: SupportsFloat = 0.0, sd: SupportsFloat = 1.0, log: bool = False):
     x = np.asarray(x, dtype=np.float64)
     mean = np.asarray(mean, dtype=np.float64)
     sd = np.asarray(sd, dtype=np.float64)
@@ -262,6 +173,53 @@ def dnorm_vec(x: npt.ArrayLike, mean: SupportsFloat = 0.0, sd: SupportsFloat = 1
     out = np.where((sd == 0) & (x == mean), np.inf, out)
     out = np.where((sd == 0) & (x != mean), (-np.inf if log else 0.0), out)
     return out
+
+
+@overload
+def dnorm(
+    x: SupportsFloat,
+    mean: SupportsFloat = 0.0,
+    sd: SupportsFloat = 1.0,
+    log: Literal[False] = False,
+    fast_dnorm: Literal[False] = False,
+) -> np.float64: ...
+
+
+@overload
+def dnorm(x: npt.ArrayLike, mean: SupportsFloat = 0.0, sd: SupportsFloat = 1.0, log: Literal[False] = False) -> npt.NDArray[np.float64]: ...
+
+
+def dnorm(
+    x: SupportsFloat | npt.NDArray,
+    mean: SupportsFloat = 0.0,
+    sd: SupportsFloat = 1.0,
+    log: bool = False,
+    fast_dnorm: bool = False,
+) -> np.float64 | npt.NDArray[np.float64]:
+    """Density function for the normal distribution.
+
+    This is a reproduction of R's `density` function.
+    Neither SciPy nor NumPy are capable of producing KDE values that align with R, and as a result,
+        a manual translation of R's KDE implementation was necessary.
+
+    References:
+        1) Documentation: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/Normal
+        2) Source code (2025-OCT-30): https://github.com/wch/r-source/blob/3f7e2528990351bc4b0d1f1b237714668ab4c0c5/src/nmath/dnorm.c
+
+    :param x: Value(s) at which to evaluate the density.
+    :param mean: Mean of the normal distribution.
+    :param sd: Standard deviation of the normal distribution.
+    :param log: If True, return the log density.
+    :param fast_dnorm: If True, use a faster but less accurate calculation for small `x`.
+
+    :returns: The density value(s) at `x`.
+    """
+    if isinstance(x, np.ndarray):
+        return _dnorm_vector(x=x, mean=mean, sd=sd, log=log)
+    elif isinstance(x, SupportsFloat):
+        return _dnorm_scalar(x=x, mean=mean, sd=sd, log=log, fast_dnorm=fast_dnorm)
+    else:
+        raise TypeError(f"Invalid type for x: {type(x)}")
 
 
 def nrd0(x: npt.ArrayLike) -> np.float64:
@@ -282,6 +240,9 @@ def nrd0(x: npt.ArrayLike) -> np.float64:
                 0.9 * lo * length(x)^(-0.2)
             }
             ```
+    :param x: Input data points.
+
+    :returns: The calculated bandwidth.
     """
     x: npt.NDArray[np.float64] = np.asarray(x, dtype=np.float64)
     if x.size < 2:
@@ -488,7 +449,7 @@ def density(
 
     kords: npt.NDArray[np.float64] = np.linspace(start=0, stop=((2 * n - 1) / (n - 1) * (up - lo)), num=2 * n, dtype=np.float64)
     kords[n + 1 : 2 * n] = -kords[n:1:-1]  # mirror/negate tail: R's kords[n:2] will index from the reverse if `n`>2
-    kords: npt.NDArray[np.float64] = dnorm_vec(kords, sd=bw_calc)
+    kords: npt.NDArray[np.float64] = _dnorm_vector(kords, sd=bw_calc)
 
     fft_y: npt.NDArray[np.complex128] = np.fft.fft(y)
     conj_fft_kords: npt.NDArray[np.complex128] = np.conjugate(np.fft.fft(kords))
@@ -510,11 +471,4 @@ def density(
 
     interp_y: ApproxResult = approx(xords, kords, **approx_args.to_dict())  # xout is provided in approx_args
 
-    return DensityResult(
-        x=interp_x,
-        y=interp_y.y,
-        x_grid=xords,
-        y_grid=kords,
-        bw=float(bw_calc),
-        n=n,
-    )
+    return DensityResult(x=interp_x, y=interp_y.y, x_grid=xords, y_grid=kords, bw=float(bw_calc), n=n)
