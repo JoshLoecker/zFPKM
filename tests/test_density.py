@@ -5,8 +5,8 @@ import numpy.typing as npt
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from zfpkm.density import binned_distribution, density, dnorm, nrd0
-from zfpkm.type import DensityResult
+from zfpkm.density import bin_distribution, density, dnorm, nrd0
+from zfpkm.types import DensityResult
 
 KERNEL_TYPE = Literal["gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine"]
 
@@ -15,7 +15,7 @@ class TestBinDistance:
     def test_basic_binning(self):
         x: npt.NDArray[float] = np.array([0.5, 1.5, 2.5])
         weights: npt.NDArray[float] = np.array([1.0, 1.0, 1.0])
-        result: npt.NDArray[float] = binned_distribution(x, weights, lo=0, up=3, n=4)
+        result: npt.NDArray[float] = bin_distribution(x, weights, lo=0, up=3, n=4)
 
         assert result.shape == (8,)
         assert np.all(result >= 0)
@@ -23,7 +23,7 @@ class TestBinDistance:
     def test_weighted_binning(self):
         x: npt.NDArray[float] = np.array([1.0, 2.0])
         weights: npt.NDArray[float] = np.array([2.0, 1.0])
-        result: npt.NDArray[float] = binned_distribution(x, weights, lo=0, up=3, n=4)
+        result: npt.NDArray[float] = bin_distribution(x, weights, lo=0, up=3, n=4)
 
         assert result.shape == (8,)
         assert result.sum() > 0
@@ -31,7 +31,7 @@ class TestBinDistance:
     def test_empty_array(self):
         x: npt.NDArray[float] = np.array([])
         weights: npt.NDArray[float] = np.array([])
-        result: npt.NDArray[float] = binned_distribution(x, weights, lo=0, up=1, n=2)
+        result: npt.NDArray[float] = bin_distribution(x, weights, lo=0, up=1, n=2)
 
         assert result.shape == (4,)
         assert_array_equal(result, np.zeros(4))
@@ -39,7 +39,7 @@ class TestBinDistance:
     def test_out_of_bounds_handling(self):
         x: npt.NDArray[float] = np.array([10.0])
         weights: npt.NDArray[float] = np.array([1.0])
-        result: npt.NDArray[float] = binned_distribution(x, weights, lo=0, up=1, n=2)
+        result: npt.NDArray[float] = bin_distribution(x, weights, lo=0, up=1, n=2)
 
         assert result.shape == (4,)
 
@@ -135,9 +135,7 @@ class TestDensity:
 
         assert isinstance(result, DensityResult)
         assert len(result.x) == 512
-        assert len(result.x_grid) == 512
-        assert len(result.y) == 50  # `approx` (inside `density`) only approximates 50 points; thus, the final y-output also has 50 points
-        assert len(result.y_grid) == 512
+        assert len(result.y) == 512
         assert result.bw > 0
         assert np.all(result.y >= 0)
 
@@ -224,7 +222,5 @@ class TestDensity:
 
         assert hasattr(result, "x")
         assert hasattr(result, "y")
-        assert hasattr(result, "x_grid")
-        assert hasattr(result, "y_grid")
         assert hasattr(result, "bw")
         assert hasattr(result, "n")

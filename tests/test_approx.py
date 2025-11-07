@@ -25,57 +25,57 @@ class TestRegularizeValues:
     """Tests for the _regularize_values function."""
 
     def test_removes_na_pairs_when_na_rm_true(self):
-        x: npt.NDArray[np.float64] = np.asarray([1.0, 2.0, np.nan, 4.0], dtype=np.float64)
-        y: npt.NDArray[np.float64] = np.asarray([10.0, np.nan, 30.0, 40.0], dtype=np.float64)
+        x: npt.NDArray[float] = np.asarray([1.0, 2.0, np.nan, 4.0], dtype=float)
+        y: npt.NDArray[float] = np.asarray([10.0, np.nan, 30.0, 40.0], dtype=float)
         result = _regularize_values(x, y, na_rm=True, ties="mean")
         np.testing.assert_array_equal(result.x, [1.0, 4.0])
         np.testing.assert_array_equal(result.y, [10.0, 40.0])
 
     def test_raises_error_with_na_in_x_when_na_rm_false(self):
-        x: npt.NDArray[np.float64] = np.asarray([1.0, np.nan, 3.0], dtype=np.float64)
-        y: npt.NDArray[np.float64] = np.asarray([10.0, 20.0, 30.0], dtype=np.float64)
+        x: npt.NDArray[float] = np.asarray([1.0, np.nan, 3.0], dtype=float)
+        y: npt.NDArray[float] = np.asarray([10.0, 20.0, 30.0], dtype=float)
         with pytest.raises(ValueError, match="NA values in x are not allowed"):
             _regularize_values(x, y, na_rm=False, ties="mean")
 
     def test_sorts_by_x(self):
-        x: npt.NDArray[np.float64] = np.asarray([3.0, 1.0, 2.0], dtype=np.float64)
-        y: npt.NDArray[np.float64] = np.asarray([30.0, 10.0, 20.0], dtype=np.float64)
+        x: npt.NDArray[float] = np.asarray([3.0, 1.0, 2.0], dtype=float)
+        y: npt.NDArray[float] = np.asarray([30.0, 10.0, 20.0], dtype=float)
         result = _regularize_values(x, y, na_rm=True, ties="mean")
         np.testing.assert_array_equal(result.x, [1.0, 2.0, 3.0])
         np.testing.assert_array_equal(result.y, [10.0, 20.0, 30.0])
 
     def test_aggregates_duplicates_with_mean(self):
-        x: npt.NDArray[np.float64] = np.asarray([1.0, 1.0, 2.0], dtype=np.float64)
-        y: npt.NDArray[np.float64] = np.asarray([10.0, 20.0, 30.0], dtype=np.float64)
+        x: npt.NDArray[float] = np.asarray([1.0, 1.0, 2.0], dtype=float)
+        y: npt.NDArray[float] = np.asarray([10.0, 20.0, 30.0], dtype=float)
         result = _regularize_values(x, y, na_rm=True, ties="mean")
         np.testing.assert_array_equal(result.x, [1.0, 2.0])
         np.testing.assert_array_equal(result.y, [15.0, 30.0])
 
     def test_aggregates_duplicates_with_first(self):
-        x: npt.NDArray[np.float64] = np.asarray([1.0, 1.0, 2.0], dtype=np.float64)
-        y: npt.NDArray[np.float64] = np.asarray([10.0, 20.0, 30.0], dtype=np.float64)
+        x: npt.NDArray[float] = np.asarray([1.0, 1.0, 2.0], dtype=float)
+        y: npt.NDArray[float] = np.asarray([10.0, 20.0, 30.0], dtype=float)
         result = _regularize_values(x, y, na_rm=True, ties="first")
         np.testing.assert_array_equal(result.x, [1.0, 2.0])
         np.testing.assert_array_equal(result.y, [10.0, 30.0])
 
     def test_aggregates_duplicates_with_last(self):
-        x: npt.NDArray[np.float64] = np.asarray([1.0, 1.0, 2.0], dtype=np.float64)
-        y: npt.NDArray[np.float64] = np.asarray([10.0, 20.0, 30.0], dtype=np.float64)
+        x: npt.NDArray[float] = np.asarray([1.0, 1.0, 2.0], dtype=float)
+        y: npt.NDArray[float] = np.asarray([10.0, 20.0, 30.0], dtype=float)
         result = _regularize_values(x, y, na_rm=True, ties="last")
         np.testing.assert_array_equal(result.x, [1.0, 2.0])
         np.testing.assert_array_equal(result.y, [20.0, 30.0])
 
     def test_handles_empty_arrays(self):
-        x: npt.NDArray[np.float64] = np.asarray([], dtype=np.float64)
-        y: npt.NDArray[np.float64] = np.asarray([], dtype=np.float64)
+        x: npt.NDArray[float] = np.asarray([], dtype=float)
+        y: npt.NDArray[float] = np.asarray([], dtype=float)
         result = _regularize_values(x, y, na_rm=True, ties="mean")
         assert result.x.size == 0
         assert result.y.size == 0
         assert result.not_na.size == 0
 
     def test_callable_ties_function(self):
-        x: npt.NDArray[np.float64] = np.asarray([1.0, 1.0, 2.0], dtype=np.float64)
-        y: npt.NDArray[np.float64] = np.asarray([10.0, 20.0, 30.0], dtype=np.float64)
+        x: npt.NDArray[float] = np.asarray([1.0, 1.0, 2.0], dtype=float)
+        y: npt.NDArray[float] = np.asarray([10.0, 20.0, 30.0], dtype=float)
         result = _regularize_values(x, y, na_rm=True, ties=np.sum)
         np.testing.assert_array_equal(result.x, [1.0, 2.0])
         np.testing.assert_array_equal(result.y, [30.0, 30.0])
