@@ -63,5 +63,3 @@ Taken together, this results in the final zFPKM scores using scikit-learn or sci
 
 ![scipy zFPKM](figures/scipy_density.png "scipy zFPKM")
 <p align="center">Figure 4: scipy FPKM ('fpkm_density', in teal) & zFPKM ('fitted_density_scaled', in salmon) distribution</p>
-
-venn diagram for active/inactive overlap
