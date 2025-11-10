@@ -89,9 +89,10 @@ def zfpkm_plot(
         figsize=(ncols * 3.5, nrows * 3),
         sharex=True,
         sharey=True,
+        squeeze=False,  # allow 1x1 grid remain an array
     )
 
-    axes = axes.flatten()
+    axes: npt.NDArray[plt.Axes] = axes.flatten()
     for ax, (sample_name, group) in zip(axes, mega_df.groupby("sample_name")):  # noqa: B905  we are intentionally skipping the last few axes that have been generated
         ax.plot(group["log2fpkm"], group["fpkm_density"], color="teal", alpha=0.7, label="fpkm_density")
         ax.plot(group["log2fpkm"], group["fitted_density_scaled"], color="salmon", alpha=0.7, label="fitted_density_scaled")
@@ -122,7 +123,7 @@ def zfpkm_plot(
     if save_filepath:
         save_filepath = Path(save_filepath)
         save_filepath.parent.mkdir(exist_ok=True, parents=True)
-        plt.savefig(save_filepath)
+        plt.savefig(save_filepath.as_posix())
     if return_fig:
         return plt.gcf()
     if not save_filepath and not return_fig:
