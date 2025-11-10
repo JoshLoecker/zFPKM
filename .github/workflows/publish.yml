@@ -29,19 +29,21 @@ jobs:
       - name: Check out
         uses: actions/checkout@v5
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+
+
       - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
+        run: uv python install 3.14
+
+      - name: Install project
+        run: uv sync
 
       - name: Build
-        run: python -m build --sdist --wheel --outdir dist
+        run: uv build
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v5
-        with:
-          name: dist
-          path: dist/*
+      - name: Publish
+        run: uv publish
 
   publish-pypi:
     name: Publish to PyPi
