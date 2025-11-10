@@ -38,7 +38,7 @@ if __name__ == "__main__":
 ## Results
 ## Expected zFPKM Distribution
 The following figure shows the expected FPKM ('fpkm_density', in teal) and zFPKM ('fpkm_density_scaled', in salmon). The Gaussian curve is fit to the peak of the FPKM density distribution. Values > -3 can be marked as active.
-![Expected zFPKM](figures/expected_density.png "Expected zFPKM")
+![Expected zFPKM](https://raw.githubusercontent.com/JoshLoecker/zfpkm/main/figures/expected_density.png "Expected zFPKM")
 <p align="center">Figure 1: The expected zFPKM Gaussian distribution overlaid on the FPKM distribution</p> 
 
 ## Actual zFPKM Distribution (from this package)
@@ -47,7 +47,7 @@ The following figure shows the calculated zFPKM from this package. Like Figure 1
 Example code showing how this graph was generated can be found in `examples/example_zfpkm.py`.
 
 
-![Actual zFPKM](figures/actual_density.png "Actual zFPKM")
+![Actual zFPKM](https://raw.githubusercontent.com/JoshLoecker/zfpkm/main/figures/actual_density.png "Actual zFPKM")
 <p align="center">Figure 2: The actual zFPKM Gaussian distribution from this package overlaid on the FPKM distribution</p>
 
 
@@ -58,8 +58,8 @@ Figure 3 and 4, below, were generated with `scikit-learn==1.7.2` and `scipy==1.1
 
 Taken together, this results in the final zFPKM scores using scikit-learn or scipy being similar to, but distinct enough, from the expected values to potentially cause problems in downstream analysis.
 
-![scikit-learn zFPKM](figures/sklearn_density.png "scikit-learn zFPKM")
+![scikit-learn zFPKM](https://raw.githubusercontent.com/JoshLoecker/zfpkm/main/figures/sklearn_density.png "scikit-learn zFPKM")
 <p align="center">Figure 3: scikit-learn FPKM ('fpkm_density', in teal) & zFPKM ('fitted_density_scaled', in salmon) distribution</p>
 
-![scipy zFPKM](figures/scipy_density.png "scipy zFPKM")
+![scipy zFPKM](https://raw.githubusercontent.com/JoshLoecker/zfpkm/main/figures/scipy_density.png "scipy zFPKM")
 <p align="center">Figure 4: scipy FPKM ('fpkm_density', in teal) & zFPKM ('fitted_density_scaled', in salmon) distribution</p>
