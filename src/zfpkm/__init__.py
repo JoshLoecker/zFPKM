@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 
-def zFPKM(fpkm: pd.DataFrame) -> tuple[pd.DataFrame, list[ZFPKMResult]]:  # noqa: N802
+def zFPKM(fpkm: pd.DataFrame, log: bool = True) -> tuple[pd.DataFrame, list[ZFPKMResult]]:  # noqa: N802
     """Calculate zFPKM from raw FPKM values.
 
     This function will perform a zFPKM calculation, following Hart et al's (2013) paper and the zFPKM implementation at: `https://github.com/ronammar/zFPKM`
@@ -32,7 +32,10 @@ def zFPKM(fpkm: pd.DataFrame) -> tuple[pd.DataFrame, list[ZFPKMResult]]:  # noqa
         - Row names as genomic identifier (Entrez Gene ID, Ensembl Gene ID, Gene Symbol, etc.)
         - Column names as sample identifiers
 
+    If `log=True`, the FPKM values should be raw values.
+
     :param fpkm: raw FPKM values.
+    :param log: If True, perform `np.log2` on the values
 
     :returns: a tuple of:
         1) The zFPKM calculation, where the index and columns are in the same order as the input dataframe
@@ -42,8 +45,11 @@ def zFPKM(fpkm: pd.DataFrame) -> tuple[pd.DataFrame, list[ZFPKMResult]]:  # noqa
             - Standard deviation of the Gaussian distribution
             - The FPKM value at the Gaussian mean (peak)
     """
-    with np.errstate(divide="ignore"):
-        log2_vals: npt.NDArray[float] = np.log2(fpkm.values).astype(float)
+    if log:
+        with np.errstate(divide="ignore"):
+            log2_vals: npt.NDArray[float] = np.log2(fpkm.values).astype(float)
+    else:
+        log2_vals = fpkm.values.astype(float)
 
     zfpkm_df: pd.DataFrame = pd.DataFrame(data=0.0, index=fpkm.index, columns=fpkm.columns)
     zfpkm_results: list[ZFPKMResult] = []
